@@ -91,6 +91,8 @@ export function validateSalesOrder(state, values, config) {
   const errors = [];
   if (!state.customer) errors.push('Select a customer from the ERP search results.');
   if (!values.date) errors.push('Choose a sales order date.');
+  const shippingGstin = String(values.shipping_gst_no || '').trim();
+  if (shippingGstin && !/^[A-Za-z0-9]{15}$/.test(shippingGstin)) errors.push('Shipping GSTIN must contain exactly 15 letters or digits, or be left blank.');
   if (!/^[A-Z]{2}$/.test(values.place_of_supply)) errors.push('Enter a valid two-letter place-of-supply state code.');
   const orderLines = state.lines.filter(l => !l.notFound);
   if (!orderLines.length) errors.push('Add at least one item.');

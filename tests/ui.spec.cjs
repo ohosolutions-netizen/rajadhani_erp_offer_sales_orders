@@ -63,7 +63,7 @@ test('ERP popup widths expose net amount and remove controls; mobile can scroll'
   if(width===1160)await page.screenshot({path:'dist/OfferSalesOrderPopup.png',fullPage:true});
  }
  await page.setViewportSize({width:390,height:844});
- const mobile=await page.locator('#salesOrderItemsCard .tablewrap').evaluate(w=>{
+ const mobile=await page.locator('.workspace').evaluate(w=>{
   w.scrollLeft=w.scrollWidth;
   return {scrolled:w.scrollLeft>0,removeVisible:w.querySelector('tbody tr .remove').getBoundingClientRect().right<=w.getBoundingClientRect().right+1};
  });
@@ -72,6 +72,7 @@ test('ERP popup widths expose net amount and remove controls; mobile can scroll'
 });
 
 test('no Start over and odd-paise GST components round before sales order total',async({page})=>{
+ await page.route('**/dist/SalesOrderPreview.html',r=>r.fulfill({contentType:'text/html',body:fs.readFileSync('dist/SalesOrderPreview.html','utf8').replace("'480256','t12'", "'480256','t5'")}));
  await start(page);
  await expect(page.getByRole('button',{name:/Start over/})).toHaveCount(0);
  await customer(page);await scanItem(page,'PAP-A4-75');
@@ -79,10 +80,31 @@ test('no Start over and odd-paise GST components round before sales order total'
  await expect(row.locator('[data-field=discount]')).toBeEnabled();
  await row.locator('[data-field=quantity]').fill('1');
  await row.locator('[data-field=rate]').fill('220.5');
- await row.locator('[data-field=tax]').selectOption({label:'GST 5 (5%)'});
+ await expect(row.locator('[data-field=tax]')).toBeDisabled();
+ await expect(row.locator('[data-field=tax]')).toHaveValue('t5');
  await expect(page.locator('#taxBreakdown')).toContainText('CGST₹55.13');
  await expect(page.locator('#taxBreakdown')).toContainText('SGST₹55.13');
  await expect(page.locator('#taxTotal')).toHaveText('₹110.26');
  await expect(page.locator('#roundValue')).toHaveText('-₹0.26');
  await expect(page.locator('#grandTotal')).toHaveText('₹2,315.00');
+});
+
+test('panes stay alongside and top aligned across viewport sizes',async({page})=>{
+ await start(page);
+ for(const width of [2560,1920,1440,1050,760,390]){
+  await page.setViewportSize({width,height:900});
+  const layout=await page.evaluate(()=>{const left=document.querySelector('.maincolumn').getBoundingClientRect(),right=document.querySelector('aside').getBoundingClientRect(),first=document.querySelector('.maincolumn .card').getBoundingClientRect();return {sameTop:Math.abs(left.top-right.top)<2,alongside:right.left>=left.right,firstAtTop:Math.abs(first.top-left.top)<2};});
+  expect(layout).toEqual({sameTop:true,alongside:true,firstAtTop:true});
+ }
+});
+
+test('tax is disabled and same as billing copies customer GSTIN; shipping GSTIN remains editable',async({page})=>{
+ await start(page);await customer(page);await item(page,'Premium');await required(page);
+ await expect(page.locator('[data-field=tax]')).toBeDisabled();
+ await page.locator('#sameAsBilling').check();
+ await expect(page.locator('#shippingGst')).toHaveValue(await page.locator('#gstNumber').inputValue());
+ await page.locator('#shippingGst').fill('123');await page.locator('#saveButton').click();
+ await expect(page.locator('#reviewDialog')).not.toBeVisible();await expect(page.locator('#notice')).toContainText('Shipping GSTIN');
+ await page.locator('#shippingGst').fill('32ABCDE1234F1Z5');await page.locator('#saveButton').click();await expect(page.locator('#reviewDialog')).toBeVisible();
+ await page.getByRole('button',{name:'Back to editing'}).click();await page.locator('#shippingGst').fill('');await page.locator('#saveButton').click();await expect(page.locator('#reviewDialog')).toBeVisible();
 });

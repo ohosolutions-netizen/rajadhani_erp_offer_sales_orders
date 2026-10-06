@@ -35,3 +35,7 @@ Local tests use mocked ERP responses. Installation, connection authorization, cu
 - [Manifest configuration](https://www.zoho.com/erp/developer/widgets/key-configuration.html): widget locations, modal sizing and connections.
 - [Creation sidebar](https://www.zoho.com/finance/developer/widget-sdk-documentation/erp/v1/locations/creation-sidebar/) and [list sidebar](https://www.zoho.com/finance/developer/widget-sdk-documentation/erp/v1/locations/list-sidebar/): Salesorder is supported in both locations.
 - [Sales Order API](https://www.zoho.com/erp/api/v3/sales-order/): create endpoint, scope, response fields, line discounts and adjustment.
+
+## Screen behavior
+
+The customer/items pane and delivery/summary pane remain top-aligned and side by side at every screen size. Narrow screens scroll the workspace horizontally. Item tax is read-only and continues to follow the item tax preference and place of supply. Selecting “Same as billing” copies Customer GSTIN into Shipping GSTIN along with the billing address. Shipping GSTIN remains editable and optional; a nonblank value must contain exactly 15 alphanumeric characters before review/save.

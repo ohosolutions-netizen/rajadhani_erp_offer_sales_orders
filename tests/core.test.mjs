@@ -169,3 +169,8 @@ test('sales order create scope differs from read scope',async()=>{
  await assert.rejects(api.createSalesOrder({}),/ERP.salesorders.CREATE/);
  await assert.rejects(api.salesOrder('1'),/ERP.salesorders.READ/);
 });
+
+test('shipping GSTIN is optional but requires 15 alphanumeric characters when supplied',()=>{
+ for(const gst of ['', '   ', '32ABCDE1234F1Z5']) assert.equal(validateSalesOrder(state,{...values,shipping_gst_no:gst},config).some(e=>e.includes('Shipping GSTIN')),false);
+ for(const gst of ['32ABC', '32ABCDE1234F1Z567', '32ABCDE1234F1Z!']) assert.equal(validateSalesOrder(state,{...values,shipping_gst_no:gst},config).some(e=>e.includes('Shipping GSTIN')),true);
+});
