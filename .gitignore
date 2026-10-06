@@ -1,0 +1,9 @@
+node_modules/
+test-results/
+playwright-report/
+.DS_Store
+
+# Separate original widget and obsolete deployment artifacts stay local.
+Rajadhani ERP Edit invoice/
+ZET-debug.log
+dist/*Invoice*
